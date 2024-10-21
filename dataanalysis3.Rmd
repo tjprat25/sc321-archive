@@ -1,0 +1,142 @@
+---
+title: "dataanalysis3"
+author: "Timothy Pratt"
+date: "12/8/2023"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#reading csv
+df <- read.csv(file = "~/birdkeeping.csv")
+str(df)
+
+#mosaic plot
+table = table(df$LC, df$BK)
+mosaicplot(table, main = "Bird Keeping vs. Lung Cancer")
+
+#summary statistics
+summary(df$LC)
+49/147
+98/147
+summary(df$SEX)
+36/147
+111/147
+summary(df$SS)
+45/147
+102/147
+summary(df$BK)
+67/147
+80/147
+
+#making sure NOLUNGCANCER = 0 and LUNGCANCER = 1
+df$LC = (df$LC == "LUNGCANCER") * 1
+
+#making sure FEMALE = 0 and MALE = 1
+df$SEX = (df$SEX == "MALE") * 1
+
+#making sure LOW = 0 and HIGH = 1
+df$SS = (df$SS == "HIGH") * 1
+
+#making sure NOBIRD = 0 and BIRD = 1
+df$BK = (df$BK == "BIRD") * 1
+
+#checking conditions and applying transformation
+library(Stat2Data)
+emplogitplot1(df$LC ~ df$AG, ngroups = 6)
+emplogitplot1(df$LC ~ df$YR, ngroups = 6)
+emplogitplot1(df$LC ~ df$CD, ngroups = 6)
+emplogitplot1(df$LC ~ sqrt(df$CD), ngroups = 6)
+df$CDRoot = sqrt(df$CD)
+
+#more summary statistics
+mean(df$AG)
+sd(df$AG)
+median(df$AG)
+IQR(df$AG)
+mean(df$YR)
+sd(df$YR)
+median(df$YR)
+IQR(df$YR)
+mean(df$CDRoot)
+sd(df$CDRoot)
+median(df$CDRoot)
+IQR(df$CDRoot)
+
+#1 variable models for crude ORs
+model1 = glm(df$LC ~ df$SEX, family = binomial)
+summary(model1)
+exp(-7.227e-16)
+confint.default(model1)
+exp(-0.797444)
+exp(0.7974440019)
+
+model2 = glm(df$LC ~ df$SS, family = binomial)
+summary(model2)
+exp(-0.4481)
+confint.default(model2)
+exp(-1.222374)
+exp(0.3261108)
+
+model3 = glm(df$LC ~ df$BK, family = binomial)
+summary(model3)
+exp(1.3564)
+confint.default(model3)
+exp(0.6287699)
+exp(2.0841129)
+
+model4 = glm(df$LC ~ df$AG, family = binomial)
+summary(model4)
+exp(-0.001899)
+confint.default(model4)
+exp(-0.04863413)
+exp(0.04483656)
+
+model5 = glm(df$LC ~ df$YR, family = binomial)
+summary(model5)
+exp(0.05327)
+confint.default(model5)
+exp(0.02247447)
+exp(0.08406855)
+
+model6 = glm(df$LC ~ df$CDRoot, family = binomial)
+summary(model6)
+exp(0.4106)
+confint.default(model6)
+exp(0.1389864)
+exp(0.6822002)
+
+#full model for adjusted ORs
+modelfull = glm(df$LC ~ df$SEX + df$SS + df$BK + df$AG + df$YR + df$CDRoot, family = binomial)
+summary(modelfull)
+exp(-0.56967)
+exp(0.11617)
+exp(1.36631)
+exp(-0.03474)
+exp(0.06652)
+exp(0.22432)
+confint.default(modelfull)
+exp(-1.60985923)
+exp(0.47052764)
+exp(-0.80028726)
+exp(1.03263252)
+exp(0.56162207)
+exp(2.17100786)
+exp(-0.10614428)
+exp(0.03666943)
+exp(0.01059137)
+exp(0.12244119)
+exp(-0.16507781)
+exp(0.61371789)
+
+#building best model
+step(modelfull)
+bestmodel = glm(df$LC ~ df$BK + df$YR, family = binomial)
+summary(bestmodel)
+
+#OR for BK in best model
+exp(1.47555)
+```
